@@ -1,0 +1,5 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.Sgs_solve" parent="Theme.MaterialComponents.NoActionBar">
+    </style>
+</resources>
