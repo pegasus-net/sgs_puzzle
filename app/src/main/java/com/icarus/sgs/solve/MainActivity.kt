@@ -9,7 +9,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.icarus.sgs.solve.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -36,11 +35,7 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun solvePuzzle(puzzle: Puzzle) {
         withContext(Dispatchers.IO) {
-            FastSolver.initSolver(this@MainActivity.applicationContext)
-            FastSolver.solve(puzzle)
-            if (!puzzle.solved) {
-                Solver().solve(puzzle)
-            }
+            Solver().solve(puzzle)
         }
     }
 

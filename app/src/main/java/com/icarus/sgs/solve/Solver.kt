@@ -27,8 +27,9 @@ class Solver {
     }
 
     private fun List<Point>.normalized(): List<Point> {
+        //找到第一行的第一个点,将其移动到(0,0)
         val minX = minOf { it.x }
-        val minY = minOf { it.y }
+        val minY = filter { it.x == minX }.minOf { it.y }
         return map { Point(it.x - minX, it.y - minY) }.sortedBy { it.x * 100 + it.y }
     }
 
@@ -62,12 +63,12 @@ class Solver {
     }
 
     // 将形状放置到网格中
-    private fun placeShape(puzzle: Puzzle, shape: Shape, startRow: Int, startCol: Int, label: PuzzlePiece): Boolean {
+    private fun placeShape(puzzle: Puzzle, shape: Shape, startRow: Int, startCol: Int): Boolean {
         if (canPlace(puzzle, shape, startRow, startCol)) {
             for ((dx, dy) in shape.shape) {
                 val row = startRow + dx
                 val col = startCol + dy
-                puzzle.put(row, col, label)
+                puzzle.put(row, col, shape.label)
             }
             return true
         }
@@ -87,12 +88,12 @@ class Solver {
         if (shapeIndex == shapes.size) {
             return true // 所有形状已成功放置
         }
+        place++
         val transformShapes = generateAllTransformations(shapes[shapeIndex]) // 获取当前形状的所有旋转版本
         for (shape in transformShapes) {
             for (row in 0 until puzzle.size) {
                 for (col in 0 until puzzle.size) {
-                    if (placeShape(puzzle, shape, row, col, shape.label)) {
-                        place++
+                    if (placeShape(puzzle, shape, row, col)) {
                         if (solve(puzzle, shapes, shapeIndex + 1)) { // 递归尝试下一个形状
                             return true
                         } else {
@@ -105,10 +106,41 @@ class Solver {
         return false // 没有解，回退
     }
 
+    //更快的算法
+    private fun solve2(puzzle: Puzzle, gridIndex: Int, allShapes: List<List<Shape>>, consumed: MutableList<PuzzlePiece>): Boolean {
+        val row = gridIndex / puzzle.size
+        val col = gridIndex % puzzle.size
+        if (row >= puzzle.size) {
+            return true
+        }
+        place++
+        if (puzzle.get(row, col) != null) {
+            return solve2(puzzle, gridIndex + 1, allShapes, consumed)
+        }
+        for (shapes in allShapes) {
+            if (consumed.contains(shapes[0].label)) {
+                continue
+            }
+            for (transform in shapes) {
+                if (canPlace(puzzle, transform, row, col)) {
+                    placeShape(puzzle, transform, row, col)
+                    consumed.add(transform.label)
+                    if (solve2(puzzle, gridIndex + 1, allShapes, consumed)) {
+                        return true
+                    }
+                    undoPlaceShape(puzzle, transform, row, col)
+                    consumed.remove(transform.label)
+                }
+            }
+        }
+        return false
+    }
+
     private var place = 0
 
     fun solve(puzzle: Puzzle) {
-        puzzle.solved = solve(puzzle, PuzzlePiece.entries.filter { it.points.isNotEmpty() }, 0)
+        place = 0
+        puzzle.solved = solve2(puzzle, 0, PuzzlePiece.entries.filter { it.points.isNotEmpty() }.map { generateAllTransformations(it) }, mutableListOf())
     }
 
     private data class Shape(val label: PuzzlePiece, val shape: List<Point>)
