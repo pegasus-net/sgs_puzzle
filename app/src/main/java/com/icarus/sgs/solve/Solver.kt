@@ -13,17 +13,23 @@ class Solver {
             180 -> shape.map { Point(-it.x, -it.y) }
             270 -> shape.map { Point(it.y, -it.x) }
             else -> shape
-        }
+        }.normalized()
     }
 
     // 水平翻转：将所有点的 x 坐标取反
     private fun horizontalFlip(shape: List<Point>): List<Point> {
-        return shape.map { Point(-it.x, it.y) }
+        return shape.map { Point(-it.x, it.y) }.normalized()
     }
 
     // 垂直翻转：将所有点的 y 坐标取反
     private fun verticalFlip(shape: List<Point>): List<Point> {
-        return shape.map { Point(it.x, -it.y) }
+        return shape.map { Point(it.x, -it.y) }.normalized()
+    }
+
+    private fun List<Point>.normalized(): List<Point> {
+        val minX = minOf { it.x }
+        val minY = minOf { it.y }
+        return map { Point(it.x - minX, it.y - minY) }.sortedBy { it.x * 100 + it.y }
     }
 
     // 生成形状的所有旋转和翻转版本
