@@ -106,8 +106,12 @@ class Solver {
         return false // 没有解，回退
     }
 
-    //更快的算法
+    /**
+     * 更快的解决方案
+     * [算法来源](https://github.com/zjuasmn/calendar-puzzle-solver/blob/main/src/solver.ts)
+     */
     private fun solve2(puzzle: Puzzle, gridIndex: Int, allShapes: List<List<Shape>>, consumed: MutableList<PuzzlePiece>): Boolean {
+        // 计算当前网格的行和列
         val row = gridIndex / puzzle.size
         val col = gridIndex % puzzle.size
         if (row >= puzzle.size) {
@@ -118,12 +122,15 @@ class Solver {
             return solve2(puzzle, gridIndex + 1, allShapes, consumed)
         }
         for (shapes in allShapes) {
+            // 如果已经放置过这个形状，跳过
             if (consumed.contains(shapes[0].label)) {
                 continue
             }
+            // 尝试放置每个形态
             for (transform in shapes) {
                 if (canPlace(puzzle, transform, row, col)) {
                     placeShape(puzzle, transform, row, col)
+                    // 记录已经放置的形状
                     consumed.add(transform.label)
                     if (solve2(puzzle, gridIndex + 1, allShapes, consumed)) {
                         return true
